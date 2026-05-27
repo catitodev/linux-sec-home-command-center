@@ -2,31 +2,19 @@
 
 [🇧🇷 Português](#-português) | [🇺🇸 English](#-english)
 
-```
-╔══════════════════════════════════════════════════════════════╗
-║   _     _                    ____                           ║
-║  | |   (_)_ __  _   ___  __/ ___|  ___  ___                ║
-║  | |   | | '_ \| | | \ \/ /\___ \ / _ \/ __|               ║
-║  | |___| | | | | |_| |>  <  ___) |  __/ (__                ║
-║  |_____|_|_| |_|\__,_/_/\_\|____/ \___|\___|               ║
-║                                                              ║
-║          Home Command Center                                 ║
-║          ━━━━━━━━━━━━━━━━━━━━                               ║
-║   🛡️  Security Dashboard for Linux Home Users  🛡️           ║
-╚══════════════════════════════════════════════════════════════╝
-```
+<img src="assets/logo-animated.svg" alt="Linux Security Home Command Center" width="800"/>
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Language](https://img.shields.io/badge/Made_with-Rust_🦀-orange.svg)](https://www.rust-lang.org/)
-[![Frontend](https://img.shields.io/badge/UI-Svelte-FF3E00.svg)](https://svelte.dev/)
-[![Platform](https://img.shields.io/badge/Platform-Linux-FCC624.svg?logo=linux&logoColor=black)](https://kernel.org)
-[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/catitodev/linux-sec-home-command-center)
-[![Tests](https://img.shields.io/badge/Tests-396_passing-brightgreen.svg)]()
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License](https://img.shields.io/badge/License-Apache_2.0-00ff41?style=flat-square&logo=apache&logoColor=00ff41&labelColor=0d1117)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-🦀-00ff41?style=flat-square&labelColor=0d1117)](https://www.rust-lang.org/)
+[![Svelte](https://img.shields.io/badge/Svelte-FF3E00?style=flat-square&logo=svelte&logoColor=white&labelColor=0d1117)](https://svelte.dev/)
+[![Linux](https://img.shields.io/badge/Linux-00ff41?style=flat-square&logo=linux&logoColor=00ff41&labelColor=0d1117)](https://kernel.org)
+[![Version](https://img.shields.io/badge/v1.0.0-00ff41?style=flat-square&labelColor=0d1117)](https://github.com/catitodev/linux-sec-home-command-center)
+[![Tests](https://img.shields.io/badge/396_tests-passing-00ff41?style=flat-square&labelColor=0d1117)]()
+[![PRs](https://img.shields.io/badge/PRs-welcome-00ff41?style=flat-square&labelColor=0d1117)](CONTRIBUTING.md)
 
-**Made with 🦀 Rust + Svelte | Open Source | Privacy-First | Offline-Capable**
+**`> Made with 🦀 Rust + Svelte | Open Source | Privacy-First | Offline-Capable _`**
 
-🔗 **Repository:** [github.com/catitodev/linux-sec-home-command-center](https://github.com/catitodev/linux-sec-home-command-center)
+🔗 [`github.com/catitodev/linux-sec-home-command-center`](https://github.com/catitodev/linux-sec-home-command-center)
 
 </div>
 
