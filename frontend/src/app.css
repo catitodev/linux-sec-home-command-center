@@ -1,0 +1,35 @@
+/* Copyright 2024-2026 catitodev */
+/* Licensed under the Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-surface-primary text-text-primary;
+  }
+
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-surface-secondary/80 backdrop-blur-glass border border-surface-tertiary/50 rounded-lg shadow-glass;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-primary;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-sec-danger hover:bg-sec-critical text-white rounded-md font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-surface-primary;
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2 bg-surface-tertiary border border-surface-tertiary rounded-md text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+}

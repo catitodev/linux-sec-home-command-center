@@ -1,0 +1,43 @@
+Linux Security Home Command Center
+Copyright 2024-2026 catitodev
+
+This product includes software developed by catitodev.
+https://github.com/catitodev
+
+=========================================================================
+
+This project is licensed under the Apache License, Version 2.0.
+You may obtain a copy of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+=========================================================================
+
+Third-Party Software Notices and Information
+
+This project incorporates components from the projects listed below.
+The original copyright notices and the licenses under which catitodev
+received such components are set forth below.
+
+-------------------------------------------------------------------------
+
+1. Rust Standard Library
+   License: MIT / Apache-2.0
+   https://www.rust-lang.org/
+
+2. Svelte
+   License: MIT
+   https://svelte.dev/
+
+3. Tauri (if applicable)
+   License: MIT / Apache-2.0
+   https://tauri.app/
+
+-------------------------------------------------------------------------
+
+Note: This NOTICE file will be updated as additional third-party
+dependencies are incorporated into the project. Each dependency's
+license and copyright information will be documented here as required
+by their respective licenses.
+
+=========================================================================
