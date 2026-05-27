@@ -18,10 +18,13 @@
 [![Linguagem](https://img.shields.io/badge/Feito_com-Rust_🦀-orange.svg)](https://www.rust-lang.org/)
 [![Frontend](https://img.shields.io/badge/UI-Svelte-FF3E00.svg)](https://svelte.dev/)
 [![Plataforma](https://img.shields.io/badge/Plataforma-Linux-FCC624.svg?logo=linux&logoColor=black)](https://kernel.org)
-[![Versão](https://img.shields.io/badge/Versão-0.1.0--alpha-green.svg)]()
+[![Versão](https://img.shields.io/badge/Versão-1.0.0-green.svg)](https://github.com/catitodev/linux-sec-home-command-center)
+[![Tests](https://img.shields.io/badge/Tests-396_passing-brightgreen.svg)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-bem--vindos-brightgreen.svg)](CONTRIBUTING.md)
 
 **Feito com 🦀 Rust + Svelte | Open Source | Privacidade Primeiro | Funciona Offline**
+
+🔗 **Repositório:** [github.com/catitodev/linux-sec-home-command-center](https://github.com/catitodev/linux-sec-home-command-center)
 
 [🇺🇸 Read in English](README_EN.md)
 
@@ -37,10 +40,11 @@
 
 - [Sobre](#sobre)
 - [Funcionalidades](#-funcionalidades)
+- [Stack Tecnológica](#-stack-tecnológica)
 - [Arquitetura](#-arquitetura)
-- [Screenshots](#-screenshots)
 - [Requisitos do Sistema](#-requisitos-do-sistema)
 - [Início Rápido](#-início-rápido)
+- [Testes](#-testes)
 - [Uso](#-uso)
 - [IronClaw — Assistente IA](#-ironclaw--assistente-ia)
 - [Filosofia de Segurança](#-filosofia-de-segurança)
@@ -75,16 +79,37 @@ Diferente de soluções corporativas complexas, este projeto foca no usuário do
 
 | Categoria | Funcionalidade | Status |
 |-----------|---------------|--------|
-| 🛡️ Firewall | Gerenciamento visual de regras (UFW/iptables) | 🔨 Em desenvolvimento |
-| 📊 Monitor | Dashboard de processos e conexões em tempo real | 🔨 Em desenvolvimento |
-| 🔐 Senhas | Auditoria de força de senhas do sistema | 📋 Planejado |
-| 🌐 Rede | Scanner de portas e análise de tráfego | 📋 Planejado |
-| 📦 Pacotes | Verificação de integridade e atualizações | 📋 Planejado |
-| 🤖 IA | Assistente IronClaw para orientação de segurança | 📋 Planejado |
-| 🔑 SSH | Gerenciamento de chaves e conexões | 📋 Planejado |
-| 📝 Logs | Análise inteligente de logs do sistema | 📋 Planejado |
-| 💾 Backup | Backup criptografado de configurações | 📋 Planejado |
-| 🚨 Alertas | Notificações de eventos de segurança | 📋 Planejado |
+| 🛡️ Firewall | Gerenciamento visual de regras (UFW/nftables) | ✅ Implementado |
+| 📊 Monitor | Dashboard de processos e conexões em tempo real | ✅ Implementado |
+| 🔐 Senhas | Auditoria de força de senhas e SSH | ✅ Implementado |
+| 🌐 Rede | Mapa de conexões e detecção de anomalias | ✅ Implementado |
+| 📦 Pacotes | Verificação de integridade (supply chain) | ✅ Implementado |
+| 🤖 IA | Assistente IronClaw (LLM local + API externa) | ✅ Implementado |
+| 🔑 SSH | Auditoria de configuração e monitoramento | ✅ Implementado |
+| 📝 Logs | Análise de logs com correlação de eventos | ✅ Implementado |
+| 💾 Backup | Snapshots Btrfs e rollback | ✅ Implementado |
+| 🚨 Alertas | Notificações e resposta automática | ✅ Implementado |
+| 🦠 Antivírus | ClamAV + YARA com regras customizadas | ✅ Implementado |
+| 🔍 Rootkit | Detecção com chkrootkit + rkhunter | ✅ Implementado |
+| 📁 Integridade | Monitoramento AIDE de arquivos críticos | ✅ Implementado |
+| 🏰 Hardening | Auditoria Lynis com Health Score | ✅ Implementado |
+| 🔒 USB | Controle de dispositivos (USBGuard) | ✅ Implementado |
+| 🧪 Sandbox | Isolamento de apps (Firejail) | ✅ Implementado |
+| 🌍 DNS | DNS criptografado (dnscrypt-proxy) | ✅ Implementado |
+| 🕵️ Secrets | Scan de credenciais em Git (TruffleHog + Gitleaks) | ✅ Implementado |
+
+---
+
+## 🔧 Stack Tecnológica
+
+| Camada | Tecnologia |
+|--------|-----------|
+| **Backend** | Rust (binário estático, musl libc) |
+| **Frontend** | Svelte + TypeScript + TailwindCSS |
+| **Banco de Dados** | SQLite + SQLCipher (criptografado) |
+| **IPC** | D-Bus + Polkit |
+| **IA** | Ollama / llama.cpp (LLM local) |
+| **Transporte** | Unix domain socket (sem exposição TCP) |
 
 ---
 
@@ -92,46 +117,54 @@ Diferente de soluções corporativas complexas, este projeto foca no usuário do
 
 ```mermaid
 graph TB
-    subgraph Frontend["🖥️ Frontend (Svelte)"]
-        UI[Interface do Usuário]
-        Charts[Gráficos & Dashboards]
+    subgraph Frontend["🖥️ Frontend (Svelte + TailwindCSS)"]
+        UI[8 Dashboard Views]
+        IC[IronClaw AI Panel]
+        SSE[SSE Real-time Updates]
     end
 
-    subgraph Backend["⚙️ Backend (Rust)"]
-        API[API Local]
-        Security[Módulos de Segurança]
-        AI[IronClaw Engine]
+    subgraph Backend["⚙️ Backend API (Rust)"]
+        API[HTTP Server - Unix Socket]
+        Auth[PAM Auth + Sessions]
+        Correlator[Event Correlation Engine]
+        Response[Automated Response Engine]
+        Tools[16 Tool Adapters]
+        DB[(SQLCipher DB)]
     end
 
-    subgraph System["🐧 Sistema Linux"]
-        Kernel[Kernel/Syscalls]
-        Services[Serviços]
-        Logs[Logs do Sistema]
+    subgraph Daemon["🔐 Privileged Daemon (Rust)"]
+        DBus[D-Bus + Polkit]
+        Whitelist[Operation Whitelist]
+        Integrity[Self-Integrity Verification]
+    end
+
+    subgraph SecurityTools["🐧 Security Tools"]
+        T1[osquery · Falco · auditd · OpenSnitch]
+        T2[CrowdSec · UFW · USBGuard · Firejail]
+        T3[ClamAV · YARA · AIDE · Lynis]
+        T4[AppArmor/SELinux · dnscrypt-proxy]
+        T5[TruffleHog · Gitleaks · chkrootkit · rkhunter]
     end
 
     UI --> API
-    Charts --> API
-    API --> Security
-    API --> AI
-    Security --> Kernel
-    Security --> Services
-    Security --> Logs
+    IC --> API
+    SSE --> API
+    API --> Auth
+    API --> Correlator
+    API --> Response
+    API --> Tools
+    API --> DB
+    API --> DBus
+    DBus --> Whitelist
+    DBus --> Integrity
+    Tools --> T1
+    Tools --> T2
+    Tools --> T3
+    Tools --> T4
+    Tools --> T5
 ```
 
-> 📐 Para documentação detalhada da arquitetura, consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-
-> 🚧 Screenshots serão adicionados conforme o desenvolvimento avança.
->
-> <!-- ![Dashboard Principal](docs/assets/screenshot-dashboard.png) -->
-> <!-- ![Monitor de Rede](docs/assets/screenshot-network.png) -->
-
-</div>
+> 📐 Arquitetura de 3 camadas: Frontend (Svelte + TailwindCSS) → Backend API (Rust, Unix socket) → Daemon Privilegiado (D-Bus + Polkit)
 
 ---
 
@@ -140,29 +173,28 @@ graph TB
 <details>
 <summary><strong>📋 Três perfis de instalação</strong></summary>
 
-| Recurso | 🟢 Mínimo | 🟡 Padrão | 🔵 Completo |
-|---------|-----------|-----------|-------------|
+| Recurso | 🟢 Mínimo (Pendrive) | 🟡 Padrão | 🔵 Completo (com LLM) |
+|---------|----------------------|-----------|------------------------|
 | **CPU** | 1 core | 2 cores | 4+ cores |
-| **RAM** | 256 MB | 512 MB | 1 GB+ |
-| **Disco** | 50 MB | 150 MB | 500 MB |
-| **Display** | Terminal | 1024x768 | 1920x1080 |
+| **RAM** | 1 GB | 4 GB | 8 GB |
+| **Disco** | 4 GB | 16 GB | 32 GB+ |
 | **Rede** | Opcional | Opcional | Recomendado |
-| **Modo** | CLI apenas | GUI básica | GUI completa + IA |
+| **Modo** | Portátil (pendrive) | Desktop completo | Desktop + IA local |
 
-### 🟢 Perfil Mínimo
-- Ideal para servidores headless ou hardware antigo
-- Apenas interface de linha de comando
-- Monitoramento básico e firewall
+### 🟢 Perfil Mínimo (Modo Pendrive)
+- Ideal para uso portátil em pendrive
+- Todas as funcionalidades de segurança
+- Sem modelo de IA local
 
 ### 🟡 Perfil Padrão (Recomendado)
-- Interface gráfica completa
-- Todos os módulos de segurança
+- Interface gráfica completa com 8 views
+- Todos os 16 módulos de segurança
 - Funciona em qualquer desktop Linux moderno
 
-### 🔵 Perfil Completo
-- Inclui assistente IronClaw com modelo de IA local
-- Análise avançada de ameaças
-- Relatórios detalhados e exportação
+### 🔵 Perfil Completo (com LLM)
+- Inclui assistente IronClaw com modelo de IA local (Ollama/llama.cpp)
+- Análise avançada de ameaças com correlação de eventos
+- Detecção de anomalias baseada em baseline
 
 </details>
 
@@ -174,30 +206,14 @@ graph TB
 
 ```bash
 # Clonar o repositório
-git clone https://github.com/catitodev/linux-security-homecommandcenter.git
-cd linux-security-homecommandcenter
+git clone https://github.com/catitodev/linux-sec-home-command-center.git
+cd linux-sec-home-command-center
 
-# Instalar dependências de build (Debian/Ubuntu)
-sudo apt install build-essential pkg-config libssl-dev
-
-# Compilar o projeto
+# Compilar o backend
 cargo build --release
 
-# Instalar no sistema
-sudo install -m 755 target/release/lshcc /usr/local/bin/
-```
-
-### Modo Pendrive (Portátil)
-
-```bash
-# Criar versão portátil para pendrive
-cargo build --release --features portable
-
-# Copiar para o pendrive (substitua /mnt/usb pelo ponto de montagem)
-cp -r target/release/lshcc portable-config/ /mnt/usb/lshcc/
-
-# Executar diretamente do pendrive
-/mnt/usb/lshcc/lshcc --portable
+# Compilar o frontend
+cd frontend && npm install && npm run build
 ```
 
 ### Primeira Execução
@@ -214,6 +230,22 @@ lshcc --quick-scan
 
 # Ver todas as opções
 lshcc --help
+```
+
+---
+
+## 🧪 Testes
+
+```
+396 testes unitários | 0 falhas | 3 crates Rust + 1 doc-test
+```
+
+```bash
+# Executar todos os testes do workspace (396 testes, 0 falhas)
+cargo test --workspace
+
+# Verificar tipos do frontend (0 erros, 0 warnings)
+cd frontend && npx svelte-check
 ```
 
 ---
@@ -256,7 +288,7 @@ lshcc report --format pdf --output ~/relatorio-seguranca.pdf
 
 ## 🤖 IronClaw — Assistente IA
 
-O **IronClaw** é o assistente de inteligência artificial integrado ao Home Command Center. Ele funciona **100% offline** usando modelos de linguagem locais.
+O **IronClaw** é o assistente de inteligência artificial integrado ao Home Command Center. Ele funciona **100% offline** usando modelos de linguagem locais (Ollama/llama.cpp).
 
 ### Capacidades
 
@@ -377,16 +409,16 @@ Contribuições são muito bem-vindas! Veja como participar:
 
 - [x] Estrutura inicial do projeto
 - [x] Definição da arquitetura
-- [ ] **v0.1** — Dashboard básico + monitor de processos
-- [ ] **v0.2** — Gerenciamento de firewall (UFW)
-- [ ] **v0.3** — Scanner de rede e portas
-- [ ] **v0.4** — Auditoria de senhas e permissões
-- [ ] **v0.5** — Análise de logs inteligente
-- [ ] **v0.6** — Integração IronClaw (IA local)
-- [ ] **v0.7** — Modo pendrive portátil
-- [ ] **v0.8** — Sistema de alertas e notificações
-- [ ] **v0.9** — Relatórios e exportação
-- [ ] **v1.0** — Release estável 🎉
+- [x] **v0.1** — Dashboard básico + monitor de processos
+- [x] **v0.2** — Gerenciamento de firewall (UFW)
+- [x] **v0.3** — Scanner de rede e portas
+- [x] **v0.4** — Auditoria de senhas e permissões
+- [x] **v0.5** — Análise de logs inteligente
+- [x] **v0.6** — Integração IronClaw (IA local)
+- [x] **v0.7** — Modo pendrive portátil
+- [x] **v0.8** — Sistema de alertas e notificações
+- [x] **v0.9** — Relatórios e exportação
+- [x] **v1.0** — Release estável 🎉
 
 ---
 
@@ -395,7 +427,7 @@ Contribuições são muito bem-vindas! Veja como participar:
 <details>
 <summary><strong>Preciso ser root para usar?</strong></summary>
 
-Não para a maioria das funções. Algumas operações específicas (como gerenciar firewall) solicitarão elevação de privilégio via `sudo` quando necessário.
+Não para a maioria das funções. Operações privilegiadas são mediadas pelo daemon via D-Bus + Polkit, solicitando autorização apenas quando necessário.
 
 </details>
 
@@ -416,7 +448,7 @@ O código é 100% aberto e auditável. Não há telemetria, coleta de dados ou c
 <details>
 <summary><strong>Substitui um antivírus?</strong></summary>
 
-Não. Este é um centro de comando para gerenciar e monitorar a segurança do sistema. Ele complementa outras ferramentas de segurança, não as substitui.
+Ele integra ClamAV e YARA para varredura de malware, além de detecção de rootkits. É um centro de comando completo que orquestra múltiplas ferramentas de segurança.
 
 </details>
 
