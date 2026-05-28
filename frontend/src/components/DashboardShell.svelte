@@ -3,13 +3,16 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, setContext } from 'svelte';
   import Sidebar from './Sidebar.svelte';
   import OfflineIndicator from './OfflineIndicator.svelte';
   import ParanoiaModeIndicator from './ParanoiaModeIndicator.svelte';
+  import LHCCAgent from './LHCCAgent.svelte';
+  import FixProgressPanel from './FixProgressPanel.svelte';
   import { isParanoiaMode } from '../lib/stores/app';
   import { sseClient } from '../lib/api/sse';
   import { apiClient } from '../lib/api/client';
+  import type { FixItem } from '../lib/stores/fixes';
 
   let currentRoute = '/';
 
@@ -17,6 +20,25 @@
     logoutButton: 'Sair',
     title: 'Security Command Center',
   };
+
+  let fixPanelRef: FixProgressPanel;
+
+  // Provide fix process trigger to child components via context
+  function startFixProcess(): void {
+    const mockFixItems: FixItem[] = [
+      { id: '1', description: 'Atualizar permissões de /etc/shadow', status: 'pending' },
+      { id: '2', description: 'Desabilitar login root via SSH', status: 'pending' },
+      { id: '3', description: 'Remover pacotes desnecessários', status: 'pending' },
+      { id: '4', description: 'Configurar firewall UFW', status: 'pending' },
+      { id: '5', description: 'Atualizar regras do AppArmor', status: 'pending' },
+      { id: '6', description: 'Corrigir permissões de diretórios home', status: 'pending' },
+      { id: '7', description: 'Habilitar auditd para monitoramento', status: 'pending' },
+    ];
+
+    fixPanelRef?.startFixes(mockFixItems);
+  }
+
+  setContext('startFixProcess', startFixProcess);
 
   // Listen for hash changes for simple routing
   function handleHashChange(): void {
@@ -80,4 +102,10 @@
 
   <!-- Offline Indicator (floating) -->
   <OfflineIndicator />
+
+  <!-- LHCC Agent Chat (persistent across all pages) -->
+  <LHCCAgent />
+
+  <!-- Fix Progress Panel (persistent across all pages) -->
+  <FixProgressPanel bind:this={fixPanelRef} />
 </div>

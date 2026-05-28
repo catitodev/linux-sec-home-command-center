@@ -4,6 +4,10 @@
 
 <script lang="ts">
   import { securityStore, healthScore, tools, activeAlerts } from '../lib/stores/security';
+  import { getContext } from 'svelte';
+
+  // Get the fix panel trigger from context (set by DashboardShell)
+  const startFixProcess = getContext<(() => void) | undefined>('startFixProcess');
 
   const labels = {
     title: 'Painel de Saúde do Sistema',
@@ -23,7 +27,21 @@
     degraded: 'Degradado',
     notInstalled: 'Não instalado',
     noTools: 'Nenhuma ferramenta configurada',
+    startScan: 'Iniciar Varredura',
+    refresh: 'Refresh',
+    cancel: 'Cancelar',
+    scanning: 'Varredura em andamento...',
+    scanComplete: 'Varredura concluída!',
+    applyFixes: 'Realizar Correções',
+    cancelFixes: 'Cancelar Correções',
   };
+
+  // Scan state
+  let isScanning = false;
+  let scanProgress = 0;
+  let scanFindings = 0;
+  let showToast = false;
+  let toastMessage = '';
 
   function getScoreColor(score: number): string {
     if (score >= 80) return '#22c55e'; // green
@@ -65,6 +83,93 @@
     }
   }
 
+  function playNotificationSound(): void {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.frequency.value = 880;
+      oscillator.type = 'sine';
+      gain.gain.value = 0.3;
+      oscillator.start();
+      setTimeout(() => { oscillator.stop(); ctx.close(); }, 200);
+    } catch {
+      // Audio not available
+    }
+  }
+
+  function sendNotification(title: string, body: string): void {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/logo.png' });
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then((p) => {
+        if (p === 'granted') new Notification(title, { body, icon: '/logo.png' });
+      });
+    }
+  }
+
+  function showToastMessage(message: string): void {
+    toastMessage = message;
+    showToast = true;
+    setTimeout(() => { showToast = false; }, 4000);
+  }
+
+  function startScan(): void {
+    if (isScanning) return;
+    isScanning = true;
+    scanProgress = 0;
+    scanFindings = 0;
+
+    const interval = setInterval(() => {
+      scanProgress += Math.floor(Math.random() * 12) + 3;
+      if (scanProgress >= 100) {
+        scanProgress = 100;
+        clearInterval(interval);
+        isScanning = false;
+
+        // Simulate findings
+        scanFindings = Math.floor(Math.random() * 5) + 1;
+
+        // Update last scan time
+        securityStore.update((s) => ({
+          ...s,
+          lastScanTime: new Date().toLocaleString('pt-BR'),
+        }));
+
+        // Notifications
+        playNotificationSound();
+        sendNotification('LHCC - Varredura Concluída', `Varredura finalizada. ${scanFindings} achados encontrados.`);
+        showToastMessage(labels.scanComplete);
+      }
+    }, 600);
+  }
+
+  function cancelScan(): void {
+    isScanning = false;
+    scanProgress = 0;
+    showToastMessage('Varredura cancelada.');
+  }
+
+  function refreshDashboard(): void {
+    // Simulate refresh by updating store with mock data
+    securityStore.update((s) => ({
+      ...s,
+      healthScore: Math.floor(Math.random() * 30) + 70,
+      activeAlerts: Math.floor(Math.random() * 10),
+      blockedConnections: Math.floor(Math.random() * 50),
+    }));
+    showToastMessage('Dashboard atualizado.');
+  }
+
+  function handleApplyFixes(): void {
+    if (startFixProcess) {
+      startFixProcess();
+    }
+  }
+
   // SVG circular progress calculations
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
@@ -73,6 +178,101 @@
 
 <div class="space-y-6">
   <h2 class="text-2xl font-bold text-text-primary">{labels.title}</h2>
+
+  <!-- Scan Action Buttons -->
+  <div class="glass-panel p-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Start Scan -->
+      <button
+        on:click={startScan}
+        disabled={isScanning}
+        class="px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-600/40 disabled:cursor-not-allowed text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-surface-primary flex items-center gap-2"
+        type="button"
+        aria-label={labels.startScan}
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        {labels.startScan}
+      </button>
+
+      <!-- Refresh -->
+      <button
+        on:click={refreshDashboard}
+        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-primary flex items-center gap-2"
+        type="button"
+        aria-label={labels.refresh}
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        {labels.refresh}
+      </button>
+
+      <!-- Cancel (only during scan) -->
+      {#if isScanning}
+        <button
+          on:click={cancelScan}
+          class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-surface-primary flex items-center gap-2"
+          type="button"
+          aria-label={labels.cancel}
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          {labels.cancel}
+        </button>
+      {/if}
+
+      <!-- Apply Fixes (only when findings > 0) -->
+      {#if scanFindings > 0 && !isScanning}
+        <button
+          on:click={handleApplyFixes}
+          class="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-surface-primary flex items-center gap-2"
+          type="button"
+          aria-label={labels.applyFixes}
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {labels.applyFixes}
+        </button>
+      {/if}
+    </div>
+
+    <!-- Scan Progress Bar -->
+    {#if isScanning}
+      <div class="mt-4">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-sm text-text-secondary">{labels.scanning}</span>
+          <span class="text-xs text-text-muted">{scanProgress}%</span>
+        </div>
+        <div
+          class="w-full h-2.5 bg-surface-tertiary rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={scanProgress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Progresso da varredura"
+        >
+          <div
+            class="h-full rounded-full bg-green-500 transition-all duration-300"
+            style="width: {scanProgress}%"
+          ></div>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Scan Results Summary -->
+    {#if scanFindings > 0 && !isScanning}
+      <div class="mt-3 px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-md">
+        <p class="text-sm text-orange-300">
+          ⚠ {scanFindings} achado{scanFindings > 1 ? 's' : ''} encontrado{scanFindings > 1 ? 's' : ''} na última varredura.
+        </p>
+      </div>
+    {/if}
+  </div>
 
   <!-- Health Score with Circular Progress Ring -->
   <div class="glass-panel p-6 flex flex-col items-center sm:flex-row sm:items-start gap-6">
@@ -172,3 +372,24 @@
     {/if}
   </div>
 </div>
+
+<!-- Toast Notification -->
+{#if showToast}
+  <div
+    class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-green-600/90 backdrop-blur-md text-white text-sm font-medium rounded-lg shadow-lg border border-green-500/30 animate-fade-in"
+    role="alert"
+    aria-live="assertive"
+  >
+    {toastMessage}
+  </div>
+{/if}
+
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+</style>
