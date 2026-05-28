@@ -16,7 +16,7 @@
     search: 'Buscar eventos...',
     clearFilters: 'Limpar Filtros',
     loadMore: 'Carregar Mais',
-    noEvents: 'Nenhum evento encontrado',
+    noEvents: 'Nenhum evento registrado. O sistema está limpo ou aguardando a primeira varredura.',
     loading: 'Carregando eventos...',
     all: 'Todos',
     correlatedGroup: 'Incidente Correlacionado',

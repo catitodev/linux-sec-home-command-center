@@ -18,18 +18,32 @@
   let isTyping = false;
   let messagesContainer: HTMLDivElement;
 
-  const mockResponses: string[] = [
-    'Dica de segurança: Mantenha seu sistema sempre atualizado com `sudo apt update && sudo apt upgrade`.',
-    'Recomendo verificar as permissões de arquivos sensíveis com `find / -perm -777 -type f 2>/dev/null`.',
-    'Para melhorar a segurança SSH, desabilite o login root em /etc/ssh/sshd_config.',
-    'Configure o firewall UFW com `sudo ufw enable` e permita apenas portas necessárias.',
-    'Verifique processos suspeitos com `ps aux | grep -v "\\[" | sort -nrk 3,3 | head -20`.',
-    'Habilite autenticação de dois fatores (2FA) para acesso ao sistema sempre que possível.',
-    'Use o ClamAV para varreduras regulares: `sudo freshclam && sudo clamscan -r /home`.',
-    'Monitore logs de autenticação com `journalctl -u sshd --since "1 hour ago"`.',
-    'Configure o fail2ban para proteger contra ataques de força bruta.',
-    'Revise as regras do AppArmor/SELinux para garantir confinamento adequado de aplicações.',
-  ];
+  const OLLAMA_URL = 'http://localhost:11434/api/generate';
+  const OLLAMA_MODEL = 'tinyllama';
+
+  const SYSTEM_PROMPT = `Você é o LHCC Agent, o assistente de segurança do Linux Security Home Command Center (LHCC).
+
+Sua função é:
+- Responder perguntas sobre segurança Linux de forma clara e objetiva
+- Explicar os resultados e funcionalidades do dashboard LHCC
+- Orientar o usuário sobre como usar cada funcionalidade da aplicação
+- Dar recomendações de segurança baseadas no contexto do sistema
+
+Funcionalidades do LHCC que você conhece:
+- Dashboard com Health Score (0-100)
+- Varredura com ClamAV + YARA (antivírus)
+- Detecção de rootkits (chkrootkit + rkhunter)
+- Monitoramento de integridade (AIDE)
+- Auditoria de hardening (Lynis)
+- Firewall (UFW)
+- Monitoramento de rede (OpenSnitch)
+- Controle USB (USBGuard)
+- Correlação de eventos de segurança
+- Resposta automática a ameaças
+- Modo Paranoia (segurança máxima)
+
+Responda sempre em português brasileiro, de forma concisa e útil.
+Se não souber algo, diga honestamente que não sabe.`;
 
   function generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -46,6 +60,58 @@
     if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+  }
+
+  async function callOllama(userMessage: string): Promise<string> {
+    try {
+      const response = await fetch(OLLAMA_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: OLLAMA_MODEL,
+          prompt: userMessage,
+          system: SYSTEM_PROMPT,
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.response || 'Desculpe, não consegui processar sua pergunta.';
+    } catch {
+      return getFallbackResponse(userMessage);
+    }
+  }
+
+  function getFallbackResponse(message: string): string {
+    const lower = message.toLowerCase();
+
+    if (lower.includes('varredura') || lower.includes('scan')) {
+      return 'Para iniciar uma varredura, clique no botão verde "Iniciar Varredura" no Dashboard. A varredura usa ClamAV e YARA para detectar malware, e chkrootkit/rkhunter para rootkits.';
+    }
+    if (lower.includes('health') || lower.includes('score') || lower.includes('saúde')) {
+      return 'O Health Score (0-100) é calculado com base em: auditoria Lynis (40%), ferramentas ativas (30%), e alertas críticos abertos (30%). Execute uma auditoria Lynis para obter seu score real.';
+    }
+    if (lower.includes('firewall') || lower.includes('ufw')) {
+      return 'O firewall UFW está configurado com política padrão: negar entrada, permitir saída. Vá em "Firewall" no menu lateral para gerenciar regras.';
+    }
+    if (lower.includes('correç') || lower.includes('fix')) {
+      return 'O botão "Realizar Correções" aparece após uma varredura encontrar problemas. Ele aplica automaticamente as correções recomendadas pelo Lynis e outras ferramentas.';
+    }
+    if (lower.includes('paranoia') || lower.includes('paranóia')) {
+      return 'O Modo Paranoia ativa todas as proteções no máximo: firewall deny-all, bloqueio USB, varreduras a cada hora, e limiar de resposta automática reduzido. Ative em Configurações.';
+    }
+    if (lower.includes('ollama') || lower.includes('ia') || lower.includes('modelo')) {
+      return 'LHCC Agent offline. Instale o Ollama com: curl -fsSL https://ollama.com/install.sh | sh && ollama pull tinyllama';
+    }
+    if (lower.includes('ajuda') || lower.includes('help') || lower.includes('como')) {
+      return 'Posso ajudar com:\n• Explicar funcionalidades do dashboard\n• Orientar sobre varreduras e correções\n• Tirar dúvidas sobre segurança Linux\n• Explicar resultados de auditorias\n\nO que gostaria de saber?';
+    }
+
+    return 'Sou o LHCC Agent. Posso ajudar com dúvidas sobre segurança Linux e funcionalidades desta aplicação. Pergunte sobre varreduras, firewall, Health Score, correções, ou qualquer funcionalidade do dashboard.\n\n⚠ Ollama não está disponível. Para respostas mais inteligentes, instale: curl -fsSL https://ollama.com/install.sh | sh && ollama pull tinyllama';
   }
 
   async function sendMessage(): Promise<void> {
@@ -66,19 +132,18 @@
     await tick();
     scrollToBottom();
 
-    // Simulate agent thinking delay
-    setTimeout(() => {
-      const response = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-      const agentMessage: ChatMessage = {
-        id: generateId(),
-        role: 'agent',
-        content: response,
-        timestamp: new Date(),
-      };
-      messages = [...messages, agentMessage];
-      isTyping = false;
-      tick().then(() => scrollToBottom());
-    }, 1200 + Math.random() * 800);
+    const response = await callOllama(text);
+
+    const agentMessage: ChatMessage = {
+      id: generateId(),
+      role: 'agent',
+      content: response,
+      timestamp: new Date(),
+    };
+    messages = [...messages, agentMessage];
+    isTyping = false;
+    await tick();
+    scrollToBottom();
   }
 
   function handleKeydown(event: KeyboardEvent): void {
@@ -155,7 +220,7 @@
               <span class="text-white text-lg font-bold">LC</span>
             </div>
             <p class="text-sm text-gray-300 mb-1">Olá! Sou o LHCC Agent.</p>
-            <p class="text-xs text-gray-500">Posso ajudar com dicas de segurança, análise de vulnerabilidades e configurações do sistema.</p>
+            <p class="text-xs text-gray-500">Posso ajudar com dúvidas sobre segurança do seu sistema e funcionalidades desta aplicação. Pergunte qualquer coisa!</p>
           </div>
         {/if}
 

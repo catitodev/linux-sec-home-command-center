@@ -18,7 +18,7 @@
     exportJSON: 'Exportar JSON',
     exportCEF: 'Exportar CEF',
     all: 'Todos',
-    noLogs: 'Nenhum log encontrado',
+    noLogs: 'Nenhum log registrado',
     date: 'Data',
     type: 'Tipo',
     description: 'Descrição',
@@ -56,20 +56,9 @@
 
   let isGenerating = false;
 
-  let reports: Report[] = [
-    { id: '1', date: '2024-12-15 14:30', name: 'relatorio_seguranca_20241215.pdf', size: '2.4 MB', format: 'PDF' },
-    { id: '2', date: '2024-12-08 09:00', name: 'relatorio_seguranca_20241208.pdf', size: '1.8 MB', format: 'PDF' },
-    { id: '3', date: '2024-12-01 09:00', name: 'relatorio_seguranca_20241201.pdf', size: '2.1 MB', format: 'PDF' },
-  ];
+  let reports: Report[] = [];
 
-  let logs: LogEntry[] = [
-    { id: '1', timestamp: '2024-12-15 15:23:45', operation: 'scan', description: 'Varredura completa iniciada pelo usuário admin', severity: 'info', user: 'admin' },
-    { id: '2', timestamp: '2024-12-15 14:10:12', operation: 'rule_change', description: 'Regra de firewall adicionada: bloquear porta 23/TCP', severity: 'medium', user: 'admin' },
-    { id: '3', timestamp: '2024-12-15 12:45:00', operation: 'authentication', description: 'Login bem-sucedido via PAM', severity: 'info', user: 'admin' },
-    { id: '4', timestamp: '2024-12-15 11:30:22', operation: 'system_change', description: 'Modo Paranoia ativado', severity: 'high', user: 'admin' },
-    { id: '5', timestamp: '2024-12-15 10:15:33', operation: 'scan', description: 'Malware detectado e quarentenado: /tmp/suspicious-binary', severity: 'critical', user: 'system' },
-    { id: '6', timestamp: '2024-12-14 22:00:00', operation: 'scan', description: 'Varredura agendada concluída - 0 achados', severity: 'info', user: 'system' },
-  ];
+  let logs: LogEntry[] = [];
 
   let filterOperation = '';
   let filterTime = '';

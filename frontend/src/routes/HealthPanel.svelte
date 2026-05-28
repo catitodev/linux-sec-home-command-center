@@ -130,8 +130,8 @@
         clearInterval(interval);
         isScanning = false;
 
-        // Simulate findings
-        scanFindings = Math.floor(Math.random() * 5) + 1;
+        // Findings start at 0 — real data comes from backend
+        scanFindings = 0;
 
         // Update last scan time
         securityStore.update((s) => ({
@@ -153,15 +153,24 @@
     showToastMessage('Varredura cancelada.');
   }
 
-  function refreshDashboard(): void {
-    // Simulate refresh by updating store with mock data
-    securityStore.update((s) => ({
-      ...s,
-      healthScore: Math.floor(Math.random() * 30) + 70,
-      activeAlerts: Math.floor(Math.random() * 10),
-      blockedConnections: Math.floor(Math.random() * 50),
-    }));
-    showToastMessage('Dashboard atualizado.');
+  async function refreshDashboard(): Promise<void> {
+    try {
+      const response = await fetch('http://localhost:3030/api/health');
+      if (response.ok) {
+        const data = await response.json();
+        securityStore.update((s) => ({
+          ...s,
+          healthScore: data.score ?? s.healthScore,
+          activeAlerts: data.active_alerts ?? s.activeAlerts,
+          blockedConnections: data.blocked_connections ?? s.blockedConnections,
+        }));
+        showToastMessage('Dashboard atualizado.');
+      } else {
+        showToastMessage('Sem dados — execute uma varredura.');
+      }
+    } catch {
+      showToastMessage('Sem dados — execute uma varredura.');
+    }
   }
 
   function handleApplyFixes(): void {

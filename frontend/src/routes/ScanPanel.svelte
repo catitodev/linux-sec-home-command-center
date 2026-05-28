@@ -64,11 +64,7 @@
 
   let scanResults: ScanResult[] = [];
 
-  let scanHistory: ScanHistoryEntry[] = [
-    { id: '1', date: '2024-12-15 14:30', scope: 'full', findings: 2, duration: '12m 34s' },
-    { id: '2', date: '2024-12-14 09:00', scope: 'home', findings: 0, duration: '3m 12s' },
-    { id: '3', date: '2024-12-13 22:00', scope: 'full', findings: 1, duration: '11m 56s' },
-  ];
+  let scanHistory: ScanHistoryEntry[] = [];
 
   function startScan(): void {
     if (isScanning) return;
@@ -93,11 +89,8 @@
         scanTools = scanTools.map(t => ({ ...t, status: 'done', progress: 100 }));
         isScanning = false;
 
-        // Mock results
-        scanResults = [
-          { tool: 'ClamAV', severity: 'high', description: 'Eicar-Test-Signature encontrado', path: '/tmp/test-malware.txt' },
-          { tool: 'YARA', severity: 'medium', description: 'Regra suspicious_script correspondeu', path: '/home/user/downloads/script.sh' },
-        ];
+        // No mock results — real results come from backend
+        scanResults = [];
       }
     }, 800);
   }

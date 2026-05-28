@@ -40,13 +40,7 @@
     blocked: boolean;
   }
 
-  let connections: Connection[] = [
-    { id: '1', processName: 'firefox', processId: 1234, destIp: '142.250.80.46', destPort: 443, protocol: 'TCP', dataVolume: '2.3 MB', duration: '5m 23s', blocked: false },
-    { id: '2', processName: 'curl', processId: 5678, destIp: '185.220.101.34', destPort: 80, protocol: 'TCP', dataVolume: '45 KB', duration: '2s', blocked: true },
-    { id: '3', processName: 'ssh', processId: 9012, destIp: '192.168.1.100', destPort: 22, protocol: 'TCP', dataVolume: '128 KB', duration: '12m 45s', blocked: false },
-    { id: '4', processName: 'node', processId: 3456, destIp: '104.16.132.229', destPort: 443, protocol: 'TCP', dataVolume: '890 KB', duration: '1m 12s', blocked: false },
-    { id: '5', processName: 'python3', processId: 7890, destIp: '91.189.91.48', destPort: 443, protocol: 'TCP', dataVolume: '56 KB', duration: '8s', blocked: false },
-  ];
+  let connections: Connection[] = [];
 
   let filterProcess = '';
   let filterDest = '';
@@ -203,7 +197,7 @@
 
     {#if filteredConnections.length === 0}
       <div class="flex items-center justify-center h-64">
-        <p class="text-text-muted">{labels.noConnections}</p>
+        <p class="text-text-muted">Nenhuma conexão monitorada. Inicie o OpenSnitch para visualizar conexões.</p>
       </div>
     {:else}
       <svg

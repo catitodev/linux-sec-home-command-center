@@ -52,21 +52,9 @@
     enabled: boolean;
   }
 
-  let findings: LynisFinding[] = [
-    { id: '1', category: 'auth', priority: 'critical', title: 'SSH permite login como root', description: 'PermitRootLogin está habilitado em /etc/ssh/sshd_config', fixAvailable: true, applied: false },
-    { id: '2', category: 'auth', priority: 'high', title: 'Senhas sem expiração configurada', description: 'PASS_MAX_DAYS não definido em /etc/login.defs', fixAvailable: true, applied: false },
-    { id: '3', category: 'networking', priority: 'high', title: 'IPv6 habilitado sem uso', description: 'IPv6 está ativo mas não há endereços configurados', fixAvailable: true, applied: false },
-    { id: '4', category: 'filesystem', priority: 'medium', title: 'Permissões amplas em /tmp', description: '/tmp não montado com noexec,nosuid', fixAvailable: true, applied: false },
-    { id: '5', category: 'kernel', priority: 'medium', title: 'ASLR parcialmente habilitado', description: 'kernel.randomize_va_space = 1 (recomendado: 2)', fixAvailable: true, applied: false },
-    { id: '6', category: 'kernel', priority: 'low', title: 'Core dumps habilitados', description: 'Processos podem gerar core dumps com informações sensíveis', fixAvailable: true, applied: false },
-    { id: '7', category: 'filesystem', priority: 'high', title: 'Arquivos SUID desnecessários', description: 'Encontrados 12 binários com bit SUID que podem ser removidos', fixAvailable: false, applied: false },
-  ];
+  let findings: LynisFinding[] = [];
 
-  let responseRules: ResponseRule[] = [
-    { id: '1', name: 'Bloquear IP após 5 tentativas', condition: 'auth_failure_count >= 5', action: 'block_ip', enabled: true },
-    { id: '2', name: 'Quarentenar arquivo suspeito', condition: 'malware_detected == true', action: 'quarantine_file', enabled: true },
-    { id: '3', name: 'Alertar sobre escalação de privilégio', condition: 'privilege_escalation == true', action: 'alert_critical', enabled: false },
-  ];
+  let responseRules: ResponseRule[] = [];
 
   let showCreateRule = false;
   let newRule = { name: '', condition: '', action: '' };
@@ -203,7 +191,7 @@
 
     {#if filteredFindings.length === 0}
       <div class="glass-panel p-8 text-center">
-        <p class="text-sec-safe">✓ {labels.noFindings}</p>
+        <p class="text-text-muted">Execute uma auditoria Lynis para ver recomendações.</p>
       </div>
     {/if}
   </div>

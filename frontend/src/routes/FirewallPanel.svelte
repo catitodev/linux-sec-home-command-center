@@ -72,27 +72,13 @@
     size: string;
   }
 
-  let rules: FirewallRule[] = [
-    { id: '1', direction: 'inbound', source: '0.0.0.0/0', destination: '*', port: '22', protocol: 'TCP', action: 'allow' },
-    { id: '2', direction: 'inbound', source: '0.0.0.0/0', destination: '*', port: '443', protocol: 'TCP', action: 'allow' },
-    { id: '3', direction: 'outbound', source: '*', destination: '185.220.101.0/24', port: '*', protocol: '*', action: 'deny' },
-    { id: '4', direction: 'inbound', source: '0.0.0.0/0', destination: '*', port: '23', protocol: 'TCP', action: 'deny' },
-  ];
+  let rules: FirewallRule[] = [];
 
-  let portDiscrepancies: PortDiscrepancy[] = [
-    { port: 8080, protocol: 'TCP', issue: 'Porta aberta sem regra de firewall correspondente' },
-    { port: 3306, protocol: 'TCP', issue: 'MySQL escutando em interface pública' },
-  ];
+  let portDiscrepancies: PortDiscrepancy[] = [];
 
-  let usbDevices: UsbDevice[] = [
-    { id: '1', name: 'Kingston DataTraveler', vendor: 'Kingston', serial: 'KT-001234', status: 'connected', approved: true, lastSeen: '2024-12-15 14:30' },
-    { id: '2', name: 'Dispositivo Desconhecido', vendor: 'Unknown', serial: 'XX-999999', status: 'connected', approved: false, lastSeen: '2024-12-15 15:00' },
-  ];
+  let usbDevices: UsbDevice[] = [];
 
-  let quarantinedFiles: QuarantinedFile[] = [
-    { id: '1', path: '/tmp/suspicious-binary', reason: 'ClamAV: Trojan.Generic', quarantinedAt: '2024-12-15 10:23', size: '2.3 MB' },
-    { id: '2', path: '/home/user/downloads/crack.exe', reason: 'YARA: rule malware_packer', quarantinedAt: '2024-12-14 18:45', size: '890 KB' },
-  ];
+  let quarantinedFiles: QuarantinedFile[] = [];
 
   let showAddForm = false;
   let newRule: Omit<FirewallRule, 'id'> = {
