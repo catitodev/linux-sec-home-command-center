@@ -57,7 +57,10 @@
   <div class="flex-1 flex flex-col overflow-hidden">
     <!-- Top Bar -->
     <header class="h-14 bg-surface-secondary border-b border-surface-tertiary flex items-center justify-between px-6">
-      <h1 class="text-lg font-semibold text-text-primary">{labels.title}</h1>
+      <div class="flex items-center gap-3">
+        <img src="/logo.png" alt="LinuxSec" class="w-7 h-7 rounded-md" />
+        <h1 class="text-lg font-semibold text-text-primary">{labels.title}</h1>
+      </div>
       <div class="flex items-center gap-4">
         <button
           on:click={handleLogout}

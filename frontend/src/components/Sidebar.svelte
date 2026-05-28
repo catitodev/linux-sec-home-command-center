@@ -27,8 +27,12 @@
 </script>
 
 <aside class="w-64 h-full bg-surface-secondary border-r border-surface-tertiary flex flex-col">
-  <!-- Health Score Header -->
+  <!-- Logo + Health Score Header -->
   <div class="p-4 border-b border-surface-tertiary">
+    <div class="flex items-center gap-3 mb-3">
+      <img src="/logo.png" alt="LinuxSec" class="w-8 h-8 rounded-md" />
+      <span class="text-sm font-bold text-text-primary">LinuxSec</span>
+    </div>
     <div class="flex items-center gap-3">
       <div class="relative w-12 h-12">
         <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
