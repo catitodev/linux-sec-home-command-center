@@ -36,6 +36,10 @@ export SCC_SOCKET_PATH="$SOCKET_PATH"
 "$PROJECT_DIR/target/release/backend-api" >> "$LOG_FILE" 2>&1 &
 echo $! > "$PID_FILE"
 
+# Start scan server (real security tool execution)
+node "$PROJECT_DIR/scripts/scan-server.js" >> "$LOG_FILE" 2>&1 &
+echo $! >> "$PID_FILE"
+
 # Install frontend deps if needed
 cd "$PROJECT_DIR/frontend"
 if [ ! -d "node_modules" ]; then

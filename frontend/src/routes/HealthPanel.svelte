@@ -117,34 +117,50 @@
     setTimeout(() => { showToast = false; }, 4000);
   }
 
-  function startScan(): void {
+  let scanResults: Array<{path: string, threat: string, engine: string, severity: string}> = [];
+  let scanDuration = '';
+
+  async function startScan(): Promise<void> {
     if (isScanning) return;
     isScanning = true;
-    scanProgress = 0;
+    scanProgress = 10;
     scanFindings = 0;
+    scanResults = [];
+    scanDuration = '';
 
-    const interval = setInterval(() => {
-      scanProgress += Math.floor(Math.random() * 12) + 3;
-      if (scanProgress >= 100) {
-        scanProgress = 100;
-        clearInterval(interval);
-        isScanning = false;
+    try {
+      // Call real scan server
+      scanProgress = 30;
+      const response = await fetch('http://127.0.0.1:3030/api/scan/full');
+      scanProgress = 90;
 
-        // Findings start at 0 — real data comes from backend
-        scanFindings = 0;
-
-        // Update last scan time
-        securityStore.update((s) => ({
-          ...s,
-          lastScanTime: new Date().toLocaleString('pt-BR'),
-        }));
-
-        // Notifications
-        playNotificationSound();
-        sendNotification('LHCC - Varredura Concluída', `Varredura finalizada. ${scanFindings} achados encontrados.`);
-        showToastMessage(labels.scanComplete);
+      if (!response.ok) {
+        throw new Error(`Scan server error: ${response.status}`);
       }
-    }, 600);
+
+      const data = await response.json();
+      scanProgress = 100;
+      isScanning = false;
+      scanFindings = data.findings?.length || 0;
+      scanResults = data.findings || [];
+      scanDuration = data.duration || '';
+
+      // Update store
+      securityStore.update((s) => ({
+        ...s,
+        lastScanTime: new Date().toLocaleString('pt-BR'),
+        activeAlerts: scanFindings,
+      }));
+
+      // Notifications
+      playNotificationSound();
+      sendNotification('LHCC - Varredura Concluída', `Varredura finalizada em ${scanDuration}. ${scanFindings} achado(s).`);
+      showToastMessage(`${labels.scanComplete} (${scanDuration}, ${scanFindings} achados)`);
+    } catch (err) {
+      isScanning = false;
+      scanProgress = 0;
+      showToastMessage('Erro: Scan server não está rodando. Execute: node scripts/scan-server.js');
+    }
   }
 
   function cancelScan(): void {
@@ -155,7 +171,7 @@
 
   async function refreshDashboard(): Promise<void> {
     try {
-      const response = await fetch('http://localhost:3030/api/health');
+      const response = await fetch('http://127.0.0.1:3030/api/health');
       if (response.ok) {
         const data = await response.json();
         securityStore.update((s) => ({
@@ -163,13 +179,14 @@
           healthScore: data.score ?? s.healthScore,
           activeAlerts: data.active_alerts ?? s.activeAlerts,
           blockedConnections: data.blocked_connections ?? s.blockedConnections,
+          tools: data.tools ?? s.tools,
         }));
-        showToastMessage('Dashboard atualizado.');
+        showToastMessage('Dashboard atualizado com dados reais.');
       } else {
-        showToastMessage('Sem dados — execute uma varredura.');
+        showToastMessage('Scan server não respondeu. Execute: node scripts/scan-server.js');
       }
     } catch {
-      showToastMessage('Sem dados — execute uma varredura.');
+      showToastMessage('Scan server offline. Execute: node scripts/scan-server.js');
     }
   }
 
@@ -276,9 +293,21 @@
     <!-- Scan Results Summary -->
     {#if scanFindings > 0 && !isScanning}
       <div class="mt-3 px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-md">
-        <p class="text-sm text-orange-300">
-          ⚠ {scanFindings} achado{scanFindings > 1 ? 's' : ''} encontrado{scanFindings > 1 ? 's' : ''} na última varredura.
+        <p class="text-sm text-orange-300 mb-2">
+          ⚠ {scanFindings} achado{scanFindings > 1 ? 's' : ''} encontrado{scanFindings > 1 ? 's' : ''} ({scanDuration})
         </p>
+        <div class="space-y-1 max-h-40 overflow-y-auto">
+          {#each scanResults as result}
+            <div class="text-xs font-mono text-text-muted flex items-start gap-2">
+              <span class="text-sec-danger flex-shrink-0">●</span>
+              <span><strong class="text-text-primary">[{result.engine}]</strong> {result.path} — {result.threat}</span>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {:else if scanFindings === 0 && !isScanning && scanDuration}
+      <div class="mt-3 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-md">
+        <p class="text-sm text-green-400">✓ Nenhuma ameaça detectada ({scanDuration})</p>
       </div>
     {/if}
   </div>
