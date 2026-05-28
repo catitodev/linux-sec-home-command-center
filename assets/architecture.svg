@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+  <defs>
+    <style>
+      .bg { fill: #0d1117; }
+      .box { fill: #161b22; stroke: #00ff41; stroke-width: 1.5; rx: 8; }
+      .box-inner { fill: #1c2128; stroke: #00ff41; stroke-width: 0.8; rx: 4; opacity: 0.8; }
+      .title { font-family: 'Courier New', monospace; font-size: 14px; fill: #00ff41; font-weight: bold; }
+      .subtitle { font-family: 'Courier New', monospace; font-size: 11px; fill: #00ff41; opacity: 0.7; }
+      .item { font-family: 'Courier New', monospace; font-size: 10px; fill: #c9d1d9; }
+      .arrow { stroke: #00ff41; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); opacity: 0.6; }
+      .label { font-family: 'Courier New', monospace; font-size: 9px; fill: #00ff41; opacity: 0.5; }
+      .section-label { font-family: 'Courier New', monospace; font-size: 12px; fill: #00ff41; opacity: 0.4; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00ff41" opacity="0.6"/>
+    </marker>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect class="bg" width="1000" height="700" rx="12"/>
+
+  <!-- Title -->
+  <text x="500" y="30" text-anchor="middle" font-family="Courier New, monospace" font-size="16" fill="#00ff41" font-weight="bold" filter="url(#glow)">◈ SYSTEM ARCHITECTURE ◈</text>
+
+  <!-- ═══ FRONTEND LAYER ═══ -->
+  <rect class="box" x="30" y="50" width="940" height="120"/>
+  <text class="section-label" x="50" y="70">[ FRONTEND ]</text>
+  <text class="title" x="50" y="90">🖥️ Svelte + TypeScript + TailwindCSS</text>
+
+  <rect class="box-inner" x="50" y="100" width="160" height="55"/>
+  <text class="item" x="65" y="118">📊 Health Panel</text>
+  <text class="item" x="65" y="133">📈 Event Timeline</text>
+  <text class="item" x="65" y="148">🌐 Connection Map</text>
+
+  <rect class="box-inner" x="225" y="100" width="160" height="55"/>
+  <text class="item" x="240" y="118">🔍 Scan Panel</text>
+  <text class="item" x="240" y="133">🛡️ Firewall Panel</text>
+  <text class="item" x="240" y="148">🏰 Hardening Wizard</text>
+
+  <rect class="box-inner" x="400" y="100" width="160" height="55"/>
+  <text class="item" x="415" y="118">⚙️ Settings</text>
+  <text class="item" x="415" y="133">📝 Reports &amp; Logs</text>
+  <text class="item" x="415" y="148">🔒 USB &amp; Quarantine</text>
+
+  <rect class="box-inner" x="575" y="100" width="180" height="55"/>
+  <text class="item" x="590" y="118">🤖 IronClaw AI Panel</text>
+  <text class="item" x="590" y="133">   ├─ Chat Interface</text>
+  <text class="item" x="590" y="148">   └─ Glassmorphism UI</text>
+
+  <rect class="box-inner" x="770" y="100" width="180" height="55"/>
+  <text class="item" x="785" y="118">📡 SSE Real-time</text>
+  <text class="item" x="785" y="133">🔑 PAM Auth Gate</text>
+  <text class="item" x="785" y="148">🌙 Dark Theme</text>
+
+  <!-- Arrow: Frontend → Backend -->
+  <line class="arrow" x1="500" y1="170" x2="500" y2="200"/>
+  <text class="label" x="510" y="190">Unix Socket</text>
+
+  <!-- ═══ BACKEND API LAYER ═══ -->
+  <rect class="box" x="30" y="200" width="620" height="220"/>
+  <text class="section-label" x="50" y="220">[ BACKEND API — Rust ]</text>
+  <text class="title" x="50" y="240">⚙️ HTTP Server (hyper) — Unix Domain Socket</text>
+
+  <!-- Auth -->
+  <rect class="box-inner" x="50" y="250" width="180" height="70"/>
+  <text class="subtitle" x="65" y="268">🔐 Authentication</text>
+  <text class="item" x="65" y="285">PAM + Sessions</text>
+  <text class="item" x="65" y="300">Rate Limiting</text>
+  <text class="item" x="65" y="315">Account Lockout</text>
+
+  <!-- Correlator -->
+  <rect class="box-inner" x="245" y="250" width="190" height="70"/>
+  <text class="subtitle" x="260" y="268">⟁ Event Correlator</text>
+  <text class="item" x="260" y="285">60s Sliding Windows</text>
+  <text class="item" x="260" y="300">Severity Scoring</text>
+  <text class="item" x="260" y="315">24h Event Lookback</text>
+
+  <!-- Response -->
+  <rect class="box-inner" x="450" y="250" width="185" height="70"/>
+  <text class="subtitle" x="465" y="268">🚨 Response Engine</text>
+  <text class="item" x="465" y="285">50 Rules (max 5 actions)</text>
+  <text class="item" x="465" y="300">Rate Limit: 10/min</text>
+  <text class="item" x="465" y="315">72h Reversal Records</text>
+
+  <!-- Database -->
+  <rect class="box-inner" x="50" y="335" width="180" height="70"/>
+  <text class="subtitle" x="65" y="353">💾 SQLCipher DB</text>
+  <text class="item" x="65" y="370">Events, Tools, Scans</text>
+  <text class="item" x="65" y="385">Rules, Actions</text>
+  <text class="item" x="65" y="400">Chat History</text>
+
+  <!-- Baselines -->
+  <rect class="box-inner" x="245" y="335" width="190" height="70"/>
+  <text class="subtitle" x="260" y="353">📊 Baselines</text>
+  <text class="item" x="260" y="370">7-day Process Learning</text>
+  <text class="item" x="260" y="385">Network Traffic Baseline</text>
+  <text class="item" x="260" y="400">Beaconing Detection</text>
+
+  <!-- IronClaw -->
+  <rect class="box-inner" x="450" y="335" width="185" height="70"/>
+  <text class="subtitle" x="465" y="353">🤖 IronClaw Engine</text>
+  <text class="item" x="465" y="370">Ollama / llama.cpp</text>
+  <text class="item" x="465" y="385">Intent Parser (NLU)</text>
+  <text class="item" x="465" y="400">Context Assembler</text>
+
+  <!-- ═══ PRIVILEGED DAEMON ═══ -->
+  <rect class="box" x="670" y="200" width="300" height="220"/>
+  <text class="section-label" x="690" y="220">[ PRIVILEGED DAEMON ]</text>
+  <text class="title" x="690" y="240">🔐 Root (systemd service)</text>
+
+  <rect class="box-inner" x="690" y="250" width="260" height="50"/>
+  <text class="subtitle" x="705" y="268">D-Bus + Polkit</text>
+  <text class="item" x="705" y="285">17 Whitelisted Operations</text>
+  <text class="item" x="705" y="295">Authorization per Action</text>
+
+  <rect class="box-inner" x="690" y="310" width="260" height="50"/>
+  <text class="subtitle" x="705" y="328">🛡️ Self-Integrity</text>
+  <text class="item" x="705" y="345">SHA256 Binary Verification</text>
+  <text class="item" x="705" y="355">chattr +i Hash File</text>
+
+  <rect class="box-inner" x="690" y="370" width="260" height="40"/>
+  <text class="subtitle" x="705" y="388">⚡ seccomp-bpf</text>
+  <text class="item" x="705" y="403">Capability Drop (4 only)</text>
+
+  <!-- Arrow: Backend → Daemon -->
+  <line class="arrow" x1="650" y1="310" x2="690" y2="310"/>
+  <text class="label" x="652" y="303">D-Bus</text>
+
+  <!-- ═══ SECURITY TOOLS LAYER ═══ -->
+  <rect class="box" x="30" y="440" width="940" height="240"/>
+  <text class="section-label" x="50" y="460">[ 16 SECURITY TOOL ADAPTERS ]</text>
+
+  <!-- Visibility -->
+  <rect class="box-inner" x="50" y="470" width="210" height="90"/>
+  <text class="subtitle" x="65" y="488">👁️ VISIBILITY (4)</text>
+  <text class="item" x="65" y="505">├─ osquery (SQL queries)</text>
+  <text class="item" x="65" y="520">├─ Falco (eBPF runtime)</text>
+  <text class="item" x="65" y="535">├─ auditd (kernel audit)</text>
+  <text class="item" x="65" y="550">└─ OpenSnitch (app firewall)</text>
+
+  <!-- Protection -->
+  <rect class="box-inner" x="275" y="470" width="220" height="90"/>
+  <text class="subtitle" x="290" y="488">🛡️ PROTECTION (6)</text>
+  <text class="item" x="290" y="505">├─ CrowdSec (collab IPS)</text>
+  <text class="item" x="290" y="520">├─ UFW/nftables (firewall)</text>
+  <text class="item" x="290" y="535">├─ USBGuard + Firejail</text>
+  <text class="item" x="290" y="550">└─ AppArmor + dnscrypt-proxy</text>
+
+  <!-- Detection -->
+  <rect class="box-inner" x="510" y="470" width="220" height="90"/>
+  <text class="subtitle" x="525" y="488">🔍 DETECTION (6)</text>
+  <text class="item" x="525" y="505">├─ ClamAV + YARA (malware)</text>
+  <text class="item" x="525" y="520">├─ chkrootkit + rkhunter</text>
+  <text class="item" x="525" y="535">├─ AIDE (file integrity)</text>
+  <text class="item" x="525" y="550">└─ Lynis (hardening audit)</text>
+
+  <!-- Git Security -->
+  <rect class="box-inner" x="745" y="470" width="210" height="90"/>
+  <text class="subtitle" x="760" y="488">🕵️ GIT SECURITY (2)</text>
+  <text class="item" x="760" y="505">├─ TruffleHog (secrets)</text>
+  <text class="item" x="760" y="520">└─ Gitleaks (pre-commit)</text>
+  <text class="item" x="760" y="545" fill="#00ff41" opacity="0.5">+ Quarantine Vault (LUKS)</text>
+  <text class="item" x="760" y="558" fill="#00ff41" opacity="0.5">+ Argon2id Key Derivation</text>
+
+  <!-- Arrows: Backend → Tools -->
+  <line class="arrow" x1="200" y1="420" x2="200" y2="470"/>
+  <line class="arrow" x1="400" y1="420" x2="400" y2="470"/>
+  <line class="arrow" x1="600" y1="420" x2="600" y2="470"/>
+  <line class="arrow" x1="800" y1="420" x2="800" y2="470"/>
+
+  <!-- Stats footer -->
+  <rect x="50" y="580" width="900" height="40" rx="4" fill="#161b22" stroke="#00ff41" stroke-width="0.5" opacity="0.5"/>
+  <text x="500" y="605" text-anchor="middle" font-family="Courier New, monospace" font-size="11" fill="#00ff41" opacity="0.7">
+    396 tests ⟫ 0 failures ⟫ 33,176 lines ⟫ 108 files ⟫ Apache 2.0 ⟫ catitodev
+  </text>
+
+  <!-- Connection labels -->
+  <text class="label" x="505" y="435">Tool Adapters</text>
+
+  <!-- Footer -->
+  <text x="500" y="660" text-anchor="middle" font-family="Courier New, monospace" font-size="10" fill="#00ff41" opacity="0.3">
+    Linux Security Home Command Center v1.0.0 — Architecture Overview
+  </text>
+</svg>

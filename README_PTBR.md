@@ -103,54 +103,9 @@ Diferente de soluções corporativas complexas, este projeto foca no usuário do
 
 ## 🏗️ Arquitetura
 
-```mermaid
-graph TB
-    subgraph Frontend["🖥️ Frontend (Svelte + TailwindCSS)"]
-        UI[8 Dashboard Views]
-        IC[IronClaw AI Panel]
-        SSE[SSE Real-time Updates]
-    end
-
-    subgraph Backend["⚙️ Backend API (Rust)"]
-        API[HTTP Server - Unix Socket]
-        Auth[PAM Auth + Sessions]
-        Correlator[Event Correlation Engine]
-        Response[Automated Response Engine]
-        Tools[16 Tool Adapters]
-        DB[(SQLCipher DB)]
-    end
-
-    subgraph Daemon["🔐 Privileged Daemon (Rust)"]
-        DBus[D-Bus + Polkit]
-        Whitelist[Operation Whitelist]
-        Integrity[Self-Integrity Verification]
-    end
-
-    subgraph SecurityTools["🐧 Security Tools"]
-        T1[osquery · Falco · auditd · OpenSnitch]
-        T2[CrowdSec · UFW · USBGuard · Firejail]
-        T3[ClamAV · YARA · AIDE · Lynis]
-        T4[AppArmor/SELinux · dnscrypt-proxy]
-        T5[TruffleHog · Gitleaks · chkrootkit · rkhunter]
-    end
-
-    UI --> API
-    IC --> API
-    SSE --> API
-    API --> Auth
-    API --> Correlator
-    API --> Response
-    API --> Tools
-    API --> DB
-    API --> DBus
-    DBus --> Whitelist
-    DBus --> Integrity
-    Tools --> T1
-    Tools --> T2
-    Tools --> T3
-    Tools --> T4
-    Tools --> T5
-```
+<div align="center">
+<img src="assets/architecture.svg" alt="Arquitetura do Sistema" width="100%"/>
+</div>
 
 > 📐 Arquitetura de 3 camadas: Frontend (Svelte + TailwindCSS) → Backend API (Rust, Unix socket) → Daemon Privilegiado (D-Bus + Polkit)
 
