@@ -3,8 +3,37 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <script lang="ts">
-  import { filteredEvents, eventsLoading, setFilters, clearFilters } from '../lib/stores/events';
+  import { onMount } from 'svelte';
+  import { filteredEvents, eventsLoading, setFilters, clearFilters, setEvents, setLoading } from '../lib/stores/events';
   import type { EventType } from '../lib/types';
+
+  let serverOffline = false;
+
+  async function loadData(): Promise<void> {
+    setLoading(true);
+    serverOffline = false;
+    try {
+      const response = await fetch('http://127.0.0.1:3030/api/events');
+      if (!response.ok) throw new Error('Server error');
+      const data = await response.json();
+      const events = (data.events || []).map((e: any) => ({
+        ...e,
+        event_type: e.event_type || 'configuration_change',
+        entity_type: e.entity_type || 'system',
+        entity_id: e.entity_id || '',
+      }));
+      setEvents(events);
+    } catch {
+      serverOffline = true;
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  onMount(() => {
+    loadData();
+  });
 
   const labels = {
     title: 'Linha do Tempo de Eventos',
@@ -239,7 +268,11 @@
 
   <!-- Event List -->
   <div class="space-y-2" role="feed" aria-label={labels.title}>
-    {#if $eventsLoading}
+    {#if serverOffline}
+      <div class="glass-panel p-8 text-center">
+        <p class="text-sec-warning">⚠ Servidor de varredura offline</p>
+      </div>
+    {:else if $eventsLoading}
       <div class="glass-panel p-8 text-center">
         <p class="text-text-muted">{labels.loading}</p>
       </div>

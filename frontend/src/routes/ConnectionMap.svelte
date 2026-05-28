@@ -41,12 +41,26 @@
   }
 
   let connections: Connection[] = [];
+  let serverOffline = false;
 
   let filterProcess = '';
   let filterDest = '';
   let filterPortMin = '';
   let filterPortMax = '';
   let refreshInterval: ReturnType<typeof setInterval> | null = null;
+
+  async function loadData(): Promise<void> {
+    serverOffline = false;
+    try {
+      const response = await fetch('http://127.0.0.1:3030/api/network/connections');
+      if (!response.ok) throw new Error('Server error');
+      const data = await response.json();
+      connections = data.connections || [];
+    } catch {
+      serverOffline = true;
+      connections = [];
+    }
+  }
 
   $: filteredConnections = connections.filter((conn) => {
     if (filterProcess && !conn.processName.toLowerCase().includes(filterProcess.toLowerCase())) return false;
@@ -111,11 +125,10 @@
   }
 
   onMount(() => {
+    loadData();
     // Auto-refresh every 10 seconds
     refreshInterval = setInterval(() => {
-      // In production, this would fetch from the API
-      // For now, just trigger reactivity
-      connections = [...connections];
+      loadData();
     }, 10000);
   });
 
@@ -195,7 +208,11 @@
   <div class="glass-panel p-4 overflow-x-auto">
     <p class="text-xs text-text-muted mb-3 italic">{labels.placeholder}</p>
 
-    {#if filteredConnections.length === 0}
+    {#if serverOffline}
+      <div class="flex items-center justify-center h-64">
+        <p class="text-sec-warning">⚠ Servidor de varredura offline</p>
+      </div>
+    {:else if filteredConnections.length === 0}
       <div class="flex items-center justify-center h-64">
         <p class="text-text-muted">Nenhuma conexão monitorada. Inicie o OpenSnitch para visualizar conexões.</p>
       </div>

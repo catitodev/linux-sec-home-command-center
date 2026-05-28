@@ -3,6 +3,8 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   const labels = {
     title: 'Relatórios e Logs',
     generateReport: 'Gerar Relatório',
@@ -43,6 +45,8 @@
     name: string;
     size: string;
     format: string;
+    content?: string;
+    filepath?: string;
   }
 
   interface LogEntry {
@@ -55,6 +59,7 @@
   }
 
   let isGenerating = false;
+  let serverOffline = false;
 
   let reports: Report[] = [];
 
@@ -63,6 +68,23 @@
   let filterOperation = '';
   let filterTime = '';
   let filterSeverity = '';
+
+  async function loadLogs(): Promise<void> {
+    serverOffline = false;
+    try {
+      const response = await fetch('http://127.0.0.1:3030/api/logs');
+      if (!response.ok) throw new Error('Server error');
+      const data = await response.json();
+      logs = data.logs || [];
+    } catch {
+      serverOffline = true;
+      logs = [];
+    }
+  }
+
+  onMount(() => {
+    loadLogs();
+  });
 
   $: filteredLogs = logs.filter(log => {
     if (filterOperation && log.operation !== filterOperation) return false;
@@ -82,22 +104,43 @@
   function generateReport(): void {
     if (isGenerating) return;
     isGenerating = true;
-    // Simulate report generation
-    setTimeout(() => {
-      const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-      reports = [
-        {
-          id: Date.now().toString(),
-          date: now.toLocaleString('pt-BR'),
-          name: `relatorio_seguranca_${dateStr}.pdf`,
-          size: '2.0 MB',
-          format: 'PDF',
-        },
-        ...reports,
-      ];
-      isGenerating = false;
-    }, 2000);
+
+    fetch('http://127.0.0.1:3030/api/report/generate')
+      .then(response => {
+        if (!response.ok) throw new Error('Server error');
+        return response.json();
+      })
+      .then(data => {
+        reports = [
+          {
+            id: Date.now().toString(),
+            date: data.date || new Date().toLocaleString('pt-BR'),
+            name: data.filename || 'relatorio.txt',
+            size: data.content ? `${(data.content.length / 1024).toFixed(1)} KB` : '-',
+            format: 'TXT',
+            content: data.content,
+            filepath: data.filepath,
+          },
+          ...reports,
+        ];
+        isGenerating = false;
+      })
+      .catch(() => {
+        serverOffline = true;
+        isGenerating = false;
+      });
+  }
+
+  function downloadReport(report: Report): void {
+    if (report.content) {
+      const blob = new Blob([report.content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = report.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }
 
   function exportJSON(): void {
@@ -169,6 +212,12 @@
 <div class="space-y-6">
   <h2 class="text-2xl font-bold text-text-primary">{labels.title}</h2>
 
+  {#if serverOffline}
+    <div class="glass-panel p-8 text-center">
+      <p class="text-sec-warning">⚠ Servidor de varredura offline</p>
+    </div>
+  {/if}
+
   <!-- Generate Report -->
   <div class="glass-panel p-6">
     <div class="flex items-center justify-between">
@@ -196,6 +245,7 @@
               <p class="text-xs text-text-muted">{report.date} • {report.size} • {report.format}</p>
             </div>
             <button
+              on:click={() => downloadReport(report)}
               class="px-3 py-1.5 text-xs bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
               type="button"
               aria-label="{labels.download} {report.name}"

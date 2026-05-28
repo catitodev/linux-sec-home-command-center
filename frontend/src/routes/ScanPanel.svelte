@@ -3,6 +3,8 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   const labels = {
     title: 'Painel de Varredura',
     startScan: 'Iniciar Varredura',
@@ -54,6 +56,7 @@
   const scanScopeOptions: ScanScope[] = ['full', 'home', 'custom'];
   let customPaths = '';
   let isScanning = false;
+  let serverOffline = false;
 
   let scanTools: ScanTool[] = [
     { name: 'clamav', displayName: 'ClamAV', progress: 0, status: 'idle' },
@@ -66,33 +69,76 @@
 
   let scanHistory: ScanHistoryEntry[] = [];
 
+  async function loadData(): Promise<void> {
+    serverOffline = false;
+    try {
+      const response = await fetch('http://127.0.0.1:3030/api/health');
+      if (!response.ok) throw new Error('Server error');
+    } catch {
+      serverOffline = true;
+    }
+  }
+
+  onMount(() => {
+    loadData();
+  });
+
   function startScan(): void {
     if (isScanning) return;
     isScanning = true;
     scanResults = [];
+    serverOffline = false;
 
-    // Simulate scan progress
+    // Animate progress bars while waiting for the real scan
     scanTools = scanTools.map(t => ({ ...t, progress: 0, status: 'scanning' }));
 
     let elapsed = 0;
-    const interval = setInterval(() => {
+    const progressInterval = setInterval(() => {
       elapsed += 5;
       scanTools = scanTools.map(t => ({
         ...t,
-        progress: Math.min(100, t.progress + Math.floor(Math.random() * 15) + 5),
+        progress: Math.min(90, t.progress + Math.floor(Math.random() * 10) + 3),
       }));
+    }, 800);
 
-      // Check if all done
-      const allDone = scanTools.every(t => t.progress >= 100);
-      if (allDone) {
-        clearInterval(interval);
+    const endpoint = scanScope === 'home' ? '/api/scan/quick' : '/api/scan/full';
+
+    fetch(`http://127.0.0.1:3030${endpoint}`)
+      .then(response => {
+        if (!response.ok) throw new Error('Server error');
+        return response.json();
+      })
+      .then(data => {
+        clearInterval(progressInterval);
         scanTools = scanTools.map(t => ({ ...t, status: 'done', progress: 100 }));
         isScanning = false;
 
-        // No mock results — real results come from backend
-        scanResults = [];
-      }
-    }, 800);
+        // Map findings to scan results
+        scanResults = (data.findings || []).map((f: any) => ({
+          tool: f.engine || 'unknown',
+          severity: f.severity || 'medium',
+          description: f.threat || f.path || '',
+          path: f.path || '',
+        }));
+
+        // Add to history
+        scanHistory = [
+          {
+            id: Date.now().toString(),
+            date: new Date().toLocaleString('pt-BR'),
+            scope: scanScope,
+            findings: scanResults.length,
+            duration: data.duration || '-',
+          },
+          ...scanHistory,
+        ];
+      })
+      .catch(() => {
+        clearInterval(progressInterval);
+        scanTools = scanTools.map(t => ({ ...t, status: 'error', progress: 0 }));
+        isScanning = false;
+        serverOffline = true;
+      });
   }
 
   function getScopeLabel(scope: ScanScope): string {
@@ -126,6 +172,12 @@
 
 <div class="space-y-6">
   <h2 class="text-2xl font-bold text-text-primary">{labels.title}</h2>
+
+  {#if serverOffline}
+    <div class="glass-panel p-8 text-center">
+      <p class="text-sec-warning">⚠ Servidor de varredura offline</p>
+    </div>
+  {/if}
 
   <!-- Scan Controls -->
   <div class="glass-panel p-6">

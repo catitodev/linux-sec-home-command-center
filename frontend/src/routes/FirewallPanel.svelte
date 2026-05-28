@@ -3,6 +3,8 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   const labels = {
     title: 'Firewall e Dispositivos',
     rulesTitle: 'Regras de Firewall Ativas',
@@ -80,6 +82,8 @@
 
   let quarantinedFiles: QuarantinedFile[] = [];
 
+  let serverOffline = false;
+
   let showAddForm = false;
   let newRule: Omit<FirewallRule, 'id'> = {
     direction: 'inbound',
@@ -89,6 +93,40 @@
     protocol: 'TCP',
     action: 'deny',
   };
+
+  async function loadData(): Promise<void> {
+    serverOffline = false;
+    try {
+      const response = await fetch('http://127.0.0.1:3030/api/firewall/status');
+      if (!response.ok) throw new Error('Server error');
+      const data = await response.json();
+      // Parse UFW numbered output into rules
+      if (data.output) {
+        const lines = data.output.split('\n').filter((l: string) => l.match(/^\[\s*\d+\]/));
+        rules = lines.map((l: string, i: number) => {
+          const allowMatch = l.toLowerCase().includes('allow');
+          const denyMatch = l.toLowerCase().includes('deny') || l.toLowerCase().includes('reject');
+          const portMatch = l.match(/(\d+)(?:\/(\w+))?/);
+          const inMatch = l.toLowerCase().includes('in');
+          return {
+            id: String(i),
+            direction: inMatch ? 'inbound' as const : 'outbound' as const,
+            source: l.match(/from\s+(\S+)/i)?.[1] || '*',
+            destination: l.match(/to\s+(\S+)/i)?.[1] || '*',
+            port: portMatch?.[1] || '*',
+            protocol: portMatch?.[2]?.toUpperCase() || 'TCP',
+            action: allowMatch ? 'allow' as const : 'deny' as const,
+          };
+        });
+      }
+    } catch {
+      serverOffline = true;
+    }
+  }
+
+  onMount(() => {
+    loadData();
+  });
 
   function addRule(): void {
     if (!newRule.port) return;
@@ -120,6 +158,12 @@
 
 <div class="space-y-6">
   <h2 class="text-2xl font-bold text-text-primary">{labels.title}</h2>
+
+  {#if serverOffline}
+    <div class="glass-panel p-8 text-center">
+      <p class="text-sec-warning">⚠ Servidor de varredura offline</p>
+    </div>
+  {/if}
 
   <!-- Firewall Rules Table -->
   <div class="glass-panel p-6">

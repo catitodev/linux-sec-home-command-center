@@ -158,6 +158,157 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Network connections (ss command)
+  if (url === '/api/network/connections') {
+    const result = runCommand('ss -tnp state established 2>/dev/null | tail -20');
+    const lines = result.output.split('\n').filter(l => l.trim() && !l.startsWith('Recv'));
+    const connections = lines.map((l, i) => {
+      const parts = l.trim().split(/\s+/);
+      const local = parts[3] || '';
+      const remote = parts[4] || '';
+      const process = (parts[5] || '').match(/"([^"]+)"/)?.[1] || 'unknown';
+      return {
+        id: String(i),
+        processName: process,
+        processId: 0,
+        destIp: remote.split(':')[0] || remote,
+        destPort: parseInt(remote.split(':').pop()) || 0,
+        protocol: 'TCP',
+        dataVolume: '-',
+        duration: '-',
+        blocked: false
+      };
+    });
+    res.writeHead(200);
+    res.end(JSON.stringify({ connections }));
+    return;
+  }
+
+  // Events/logs from journalctl
+  if (url === '/api/events') {
+    const result = runCommand('journalctl --since "24 hours ago" -p warning --no-pager -o json 2>/dev/null | tail -20');
+    const events = result.output.split('\n').filter(l => l.trim()).map((l, i) => {
+      try {
+        const j = JSON.parse(l);
+        return {
+          id: String(i),
+          source_tool: j.SYSLOG_IDENTIFIER || 'system',
+          severity: 4,
+          description: j.MESSAGE || '',
+          entity_type: 'system',
+          entity_id: j._PID || '',
+          created_at: new Date(parseInt(j.__REALTIME_TIMESTAMP) / 1000).toISOString(),
+          correlated: false,
+          correlation_id: null
+        };
+      } catch { return null; }
+    }).filter(Boolean);
+    res.writeHead(200);
+    res.end(JSON.stringify({ events }));
+    return;
+  }
+
+  // Hardening recommendations from Lynis
+  if (url === '/api/hardening') {
+    const result = runCommand('lynis show suggestions 2>/dev/null | head -30', 30000);
+    const lines = result.output.split('\n').filter(l => l.trim());
+    const findings = lines.map((l, i) => ({
+      id: String(i),
+      category: l.includes('SSH') || l.includes('auth') ? 'auth' : l.includes('network') || l.includes('firewall') ? 'networking' : l.includes('file') || l.includes('perm') ? 'filesystem' : 'kernel',
+      priority: 'medium',
+      title: l.trim().substring(0, 80),
+      description: l.trim(),
+      fixAvailable: false,
+      applied: false
+    }));
+    res.writeHead(200);
+    res.end(JSON.stringify({ findings, hardening_index: 0 }));
+    return;
+  }
+
+  // Generate report (creates a real text file)
+  if (url === '/api/report/generate') {
+    const fs = require('fs');
+    const date = new Date().toISOString().slice(0, 10);
+    const reportDir = '/tmp/lhcc-reports';
+    if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
+
+    const hostname = runCommand('hostname').output;
+    const kernel = runCommand('uname -r').output;
+    const uptime = runCommand('uptime -p').output;
+    const ufwStatus = runCommand('ufw status 2>/dev/null').output;
+
+    const report = `
+═══════════════════════════════════════════════════════
+  LHCC — Relatório de Segurança
+  Data: ${new Date().toLocaleString('pt-BR')}
+═══════════════════════════════════════════════════════
+
+SISTEMA:
+  Hostname: ${hostname}
+  Kernel: ${kernel}
+  Uptime: ${uptime}
+
+FIREWALL (UFW):
+${ufwStatus || '  Não configurado'}
+
+FERRAMENTAS INSTALADAS:
+  ClamAV: ${runCommand('which clamscan').success ? '✓' : '✗'}
+  chkrootkit: ${runCommand('which chkrootkit').success ? '✓' : '✗'}
+  rkhunter: ${runCommand('which rkhunter').success ? '✓' : '✗'}
+  Lynis: ${runCommand('which lynis').success ? '✓' : '✗'}
+  YARA: ${runCommand('which yara').success ? '✓' : '✗'}
+  auditd: ${runCommand('which auditctl').success ? '✓' : '✗'}
+
+═══════════════════════════════════════════════════════
+  Gerado por Linux Security Home Command Center v1.0
+  https://github.com/catitodev/linux-sec-home-command-center
+═══════════════════════════════════════════════════════
+`;
+
+    const filename = `relatorio_seguranca_${date}.txt`;
+    const filepath = `${reportDir}/${filename}`;
+    fs.writeFileSync(filepath, report);
+
+    res.writeHead(200);
+    res.end(JSON.stringify({ filename, filepath, content: report, date: new Date().toLocaleString('pt-BR') }));
+    return;
+  }
+
+  // Download report
+  if (url.startsWith('/api/report/download/')) {
+    const fs = require('fs');
+    const filename = url.split('/').pop();
+    const filepath = `/tmp/lhcc-reports/${filename}`;
+    if (fs.existsSync(filepath)) {
+      const content = fs.readFileSync(filepath, 'utf-8');
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.writeHead(200);
+      res.end(content);
+    } else {
+      res.writeHead(404);
+      res.end(JSON.stringify({ error: 'Report not found' }));
+    }
+    return;
+  }
+
+  // Logs from journalctl (for Reports page)
+  if (url === '/api/logs') {
+    const result = runCommand('journalctl --since "7 days ago" --no-pager -o short 2>/dev/null | grep -iE "(error|warning|failed|denied|blocked)" | tail -30');
+    const logs = result.output.split('\n').filter(l => l.trim()).map((l, i) => ({
+      id: String(i),
+      timestamp: l.substring(0, 15),
+      operation: l.includes('error') ? 'system_change' : l.includes('denied') ? 'authentication' : 'scan',
+      description: l.substring(16).trim().substring(0, 100),
+      severity: l.toLowerCase().includes('error') ? 'high' : l.toLowerCase().includes('warning') ? 'medium' : 'low',
+      user: 'system'
+    }));
+    res.writeHead(200);
+    res.end(JSON.stringify({ logs }));
+    return;
+  }
+
   // 404
   res.writeHead(404);
   res.end(JSON.stringify({ error: 'Not found' }));
@@ -165,5 +316,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`🛡️  LHCC Scan Server running on http://127.0.0.1:${PORT}`);
-  console.log('   Endpoints: /api/health, /api/scan/quick, /api/scan/full, /api/audit/lynis, /api/firewall/status');
+  console.log('   Endpoints: /api/health, /api/scan/quick, /api/scan/full, /api/audit/lynis');
+  console.log('   /api/firewall/status, /api/network/connections, /api/events');
+  console.log('   /api/hardening, /api/report/generate, /api/report/download/:file, /api/logs');
 });

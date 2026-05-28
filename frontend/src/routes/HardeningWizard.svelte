@@ -3,6 +3,8 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   const labels = {
     title: 'Hardening do Sistema',
     findings: 'Recomendações do Lynis',
@@ -56,10 +58,33 @@
 
   let responseRules: ResponseRule[] = [];
 
+  let serverOffline = false;
   let showCreateRule = false;
   let newRule = { name: '', condition: '', action: '' };
   let selectedCategory: Category | 'all' = 'all';
   const categoryOptions: Category[] = ['auth', 'networking', 'filesystem', 'kernel'];
+
+  async function loadData(): Promise<void> {
+    serverOffline = false;
+    try {
+      const response = await fetch('http://127.0.0.1:3030/api/hardening');
+      if (!response.ok) throw new Error('Server error');
+      const data = await response.json();
+      findings = (data.findings || []).map((f: any) => ({
+        ...f,
+        priority: f.priority || 'medium',
+        fixAvailable: f.fixAvailable || false,
+        applied: f.applied || false,
+      }));
+    } catch {
+      serverOffline = true;
+      findings = [];
+    }
+  }
+
+  onMount(() => {
+    loadData();
+  });
 
   $: filteredFindings = selectedCategory === 'all'
     ? findings
@@ -189,7 +214,11 @@
       </div>
     {/each}
 
-    {#if filteredFindings.length === 0}
+    {#if serverOffline}
+      <div class="glass-panel p-8 text-center">
+        <p class="text-sec-warning">⚠ Servidor de varredura offline</p>
+      </div>
+    {:else if filteredFindings.length === 0}
       <div class="glass-panel p-8 text-center">
         <p class="text-text-muted">Execute uma auditoria Lynis para ver recomendações.</p>
       </div>
