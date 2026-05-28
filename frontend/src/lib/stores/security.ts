@@ -14,7 +14,30 @@ const initialState: SecurityState = {
   lastScanTime: null,
 };
 
-export const securityStore = writable<SecurityState>(initialState);
+// Load persisted state from localStorage
+function loadPersistedState(): SecurityState {
+  try {
+    const saved = localStorage.getItem('lhcc_security_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...initialState, ...parsed };
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return initialState;
+}
+
+export const securityStore = writable<SecurityState>(loadPersistedState());
+
+// Persist state changes to localStorage
+securityStore.subscribe((state) => {
+  try {
+    localStorage.setItem('lhcc_security_state', JSON.stringify(state));
+  } catch {
+    // Storage full or unavailable
+  }
+});
 
 // Derived stores
 export const healthScore = derived(securityStore, ($sec) => $sec.healthScore);

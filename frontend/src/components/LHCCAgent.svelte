@@ -63,6 +63,14 @@ Se não souber algo, diga honestamente que não sabe.`;
   }
 
   async function callOllama(userMessage: string): Promise<string> {
+    // Use intelligent fallback as primary — tinyllama is too weak for Portuguese
+    // Only use Ollama if a capable model (llama3.2, mistral) is available
+    const fallback = getFallbackResponse(userMessage);
+    if (fallback !== '__no_match__') {
+      return fallback;
+    }
+
+    // Try Ollama only for questions not covered by fallback
     try {
       const response = await fetch(OLLAMA_URL, {
         method: 'POST',
@@ -80,38 +88,70 @@ Se não souber algo, diga honestamente que não sabe.`;
       }
 
       const data = await response.json();
-      return data.response || 'Desculpe, não consegui processar sua pergunta.';
+      const answer = data.response?.trim();
+      if (answer && answer.length > 20) {
+        return answer;
+      }
+      return getGenericResponse();
     } catch {
-      return getFallbackResponse(userMessage);
+      return getGenericResponse();
     }
+  }
+
+  function getGenericResponse(): string {
+    return 'Sou o LHCC Agent — seu assistente de segurança. Posso ajudar com:\n\n• **Varredura** — como iniciar e interpretar resultados\n• **Health Score** — o que significa e como melhorar\n• **Firewall** — regras e configuração\n• **Correções** — como aplicar recomendações\n• **Modo Paranoia** — proteção máxima\n• **Eventos** — entender alertas de segurança\n\nPergunte sobre qualquer funcionalidade!';
   }
 
   function getFallbackResponse(message: string): string {
     const lower = message.toLowerCase();
 
-    if (lower.includes('varredura') || lower.includes('scan')) {
-      return 'Para iniciar uma varredura, clique no botão verde "Iniciar Varredura" no Dashboard. A varredura usa ClamAV e YARA para detectar malware, e chkrootkit/rkhunter para rootkits.';
+    if (lower.includes('varredura') || lower.includes('scan') || lower.includes('escanear')) {
+      return 'Para iniciar uma varredura, clique no botão verde "Iniciar Varredura" no Dashboard. A varredura usa ClamAV e YARA para detectar malware, e chkrootkit/rkhunter para rootkits. Os resultados aparecem na seção "Varredura" do menu lateral.';
     }
-    if (lower.includes('health') || lower.includes('score') || lower.includes('saúde')) {
-      return 'O Health Score (0-100) é calculado com base em: auditoria Lynis (40%), ferramentas ativas (30%), e alertas críticos abertos (30%). Execute uma auditoria Lynis para obter seu score real.';
+    if (lower.includes('health') || lower.includes('score') || lower.includes('saúde') || lower.includes('pontuação')) {
+      return 'O Health Score (0-100) é calculado com base em:\n• Auditoria Lynis (40%)\n• Ferramentas ativas (30%)\n• Alertas críticos abertos (30%)\n\nPara obter seu score real, execute uma auditoria em "Hardening" no menu lateral.';
     }
-    if (lower.includes('firewall') || lower.includes('ufw')) {
-      return 'O firewall UFW está configurado com política padrão: negar entrada, permitir saída. Vá em "Firewall" no menu lateral para gerenciar regras.';
+    if (lower.includes('firewall') || lower.includes('ufw') || lower.includes('porta')) {
+      return 'O firewall UFW está configurado com política padrão: negar entrada, permitir saída. Vá em "Firewall" no menu lateral para:\n• Ver regras ativas\n• Adicionar/remover regras\n• Verificar portas abertas sem regra correspondente';
     }
-    if (lower.includes('correç') || lower.includes('fix')) {
-      return 'O botão "Realizar Correções" aparece após uma varredura encontrar problemas. Ele aplica automaticamente as correções recomendadas pelo Lynis e outras ferramentas.';
+    if (lower.includes('correç') || lower.includes('fix') || lower.includes('corrigir')) {
+      return 'O botão "Realizar Correções" aparece após uma varredura encontrar problemas. Ele aplica automaticamente as correções recomendadas. Você pode minimizar o painel e continuar navegando — o processo roda em background.';
     }
-    if (lower.includes('paranoia') || lower.includes('paranóia')) {
-      return 'O Modo Paranoia ativa todas as proteções no máximo: firewall deny-all, bloqueio USB, varreduras a cada hora, e limiar de resposta automática reduzido. Ative em Configurações.';
+    if (lower.includes('paranoia') || lower.includes('paranóia') || lower.includes('máxim')) {
+      return 'O Modo Paranoia ativa todas as proteções no máximo:\n• Firewall deny-all (entrada e saída)\n• Bloqueio de USB\n• Varreduras a cada hora\n• Resposta automática com limiar reduzido\n\nAtive em Configurações (menu lateral).';
     }
-    if (lower.includes('ollama') || lower.includes('ia') || lower.includes('modelo')) {
-      return 'LHCC Agent offline. Instale o Ollama com: curl -fsSL https://ollama.com/install.sh | sh && ollama pull tinyllama';
+    if (lower.includes('evento') || lower.includes('alerta') || lower.includes('timeline')) {
+      return 'A Linha do Tempo de Eventos mostra todos os alertas de segurança em ordem cronológica. Use os filtros para buscar por ferramenta, severidade ou tipo. Eventos correlacionados (de múltiplas ferramentas) aparecem agrupados.';
     }
-    if (lower.includes('ajuda') || lower.includes('help') || lower.includes('como')) {
-      return 'Posso ajudar com:\n• Explicar funcionalidades do dashboard\n• Orientar sobre varreduras e correções\n• Tirar dúvidas sobre segurança Linux\n• Explicar resultados de auditorias\n\nO que gostaria de saber?';
+    if (lower.includes('rede') || lower.includes('conex') || lower.includes('network') || lower.includes('opensnitch')) {
+      return 'O Mapa de Conexões mostra quais processos estão se conectando à internet. Conexões para IPs na blocklist do CrowdSec aparecem em vermelho. Para monitoramento real, instale o OpenSnitch.';
+    }
+    if (lower.includes('usb') || lower.includes('dispositivo') || lower.includes('pendrive')) {
+      return 'O controle USB (USBGuard) bloqueia dispositivos desconhecidos por padrão. Vá em "Firewall" → seção "Dispositivos USB" para aprovar ou bloquear dispositivos. Teclados e mouses são auto-aprovados.';
+    }
+    if (lower.includes('relatório') || lower.includes('report') || lower.includes('pdf') || lower.includes('log')) {
+      return 'Vá em "Relatórios" no menu lateral para:\n• Gerar relatório PDF completo\n• Visualizar logs de operações\n• Exportar dados em JSON ou CEF\n• Ver histórico de relatórios gerados';
+    }
+    if (lower.includes('config') || lower.includes('idioma') || lower.includes('tema') || lower.includes('notificaç')) {
+      return 'Em "Configurações" (menu lateral) você pode:\n• Ajustar limiar de notificações\n• Definir horário silencioso\n• Trocar idioma (pt-BR / en-US)\n• Mudar tema (escuro/claro)\n• Ativar/desativar Modo Paranoia';
+    }
+    if (lower.includes('o que') || lower.includes('o q') || lower.includes('quem') || lower.includes('faz') || lower.includes('função') || lower.includes('serve')) {
+      return 'Sou o LHCC Agent — assistente de segurança do Linux Security Home Command Center. Minhas funções:\n\n• Explicar funcionalidades do dashboard\n• Orientar sobre varreduras e correções\n• Tirar dúvidas sobre segurança Linux\n• Explicar resultados de auditorias\n• Recomendar configurações de proteção\n\nPergunte qualquer coisa sobre o sistema!';
+    }
+    if (lower.includes('ajuda') || lower.includes('help') || lower.includes('como') || lower.includes('início') || lower.includes('começar')) {
+      return 'Para começar:\n\n1. Clique em "Iniciar Varredura" no Dashboard\n2. Aguarde a conclusão (som + notificação)\n3. Se houver achados, clique "Realizar Correções"\n4. Vá em "Hardening" para ver recomendações do Lynis\n5. Configure o firewall em "Firewall"\n\nDica: o Health Score sobe conforme você aplica correções!';
+    }
+    if (lower.includes('lynis') || lower.includes('hardening') || lower.includes('auditoria')) {
+      return 'O Lynis faz uma auditoria completa do sistema e gera recomendações de hardening. Vá em "Hardening" no menu lateral para:\n• Ver recomendações por categoria (Auth, Rede, Filesystem, Kernel)\n• Aplicar correções com um clique\n• Criar regras de resposta automática';
+    }
+    if (lower.includes('quarentena') || lower.includes('isolado') || lower.includes('malware')) {
+      return 'Arquivos suspeitos detectados pela varredura são movidos para a Quarentena (vault LUKS criptografado). Vá em "Firewall" → seção "Quarentena" para:\n• Ver arquivos isolados\n• Restaurar falsos positivos\n• Excluir permanentemente (overwrite seguro)';
+    }
+    if (lower.includes('olá') || lower.includes('oi') || lower.includes('hey') || lower.includes('bom dia') || lower.includes('boa tarde') || lower.includes('boa noite')) {
+      return 'Olá! 👋 Sou o LHCC Agent. Como posso ajudar com a segurança do seu sistema hoje?';
     }
 
-    return 'Sou o LHCC Agent. Posso ajudar com dúvidas sobre segurança Linux e funcionalidades desta aplicação. Pergunte sobre varreduras, firewall, Health Score, correções, ou qualquer funcionalidade do dashboard.\n\n⚠ Ollama não está disponível. Para respostas mais inteligentes, instale: curl -fsSL https://ollama.com/install.sh | sh && ollama pull tinyllama';
+    return '__no_match__';
   }
 
   async function sendMessage(): Promise<void> {
