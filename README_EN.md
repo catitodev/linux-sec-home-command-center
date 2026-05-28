@@ -1,6 +1,12 @@
 <div align="center">
 
-<img src="assets/logo-animated.svg" alt="Linux Security Home Command Center" width="800"/>
+<img src="assets/A_dynamic_looping_animated_banner_for_a_linu.gif" alt="Linux Security Home Command Center" width="600"/>
+
+<br/>
+
+<img src="assets/3D_logo.jpeg" alt="LinuxSec Logo" width="120" style="border-radius: 16px;"/>
+
+<br/>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-00ff41?style=flat-square&logo=apache&logoColor=00ff41&labelColor=0d1117)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-🦀-00ff41?style=flat-square&labelColor=0d1117)](https://www.rust-lang.org/)

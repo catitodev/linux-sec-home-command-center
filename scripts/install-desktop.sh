@@ -10,17 +10,7 @@ set -e
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DESKTOP_FILE="$HOME/.local/share/applications/lshcc.desktop"
 DESKTOP_LINK="$HOME/Desktop/lshcc.desktop"
-ICON_PATH="$PROJECT_DIR/assets/icon.png"
-
-# Criar ícone PNG a partir do SVG (se ImageMagick disponível)
-if command -v convert &> /dev/null && [ -f "$PROJECT_DIR/assets/logo-animated.svg" ]; then
-    convert "$PROJECT_DIR/assets/logo-animated.svg" -resize 128x128 "$ICON_PATH" 2>/dev/null || true
-fi
-
-# Se não conseguiu converter, usar um ícone genérico
-if [ ! -f "$ICON_PATH" ]; then
-    ICON_PATH="security-high"
-fi
+ICON_PATH="$PROJECT_DIR/assets/3D_logo.jpeg"
 
 # Criar arquivo .desktop
 mkdir -p "$HOME/.local/share/applications"
