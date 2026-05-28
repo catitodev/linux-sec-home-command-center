@@ -4,7 +4,7 @@
 
 <br/>
 
-<img src="assets/3D_logo.jpeg" alt="LinuxSec Logo" width="120" style="border-radius: 16px;"/>
+<img src="assets/LHSCC.png" alt="LinuxSec Logo" width="120" style="border-radius: 16px;"/>
 
 <br/>
 

@@ -10,7 +10,7 @@ set -e
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DESKTOP_FILE="$HOME/.local/share/applications/lshcc.desktop"
 DESKTOP_LINK="$HOME/Desktop/lshcc.desktop"
-ICON_PATH="$PROJECT_DIR/assets/3D_logo.jpeg"
+ICON_PATH="$PROJECT_DIR/assets/LHSCC.png"
 
 # Criar arquivo .desktop
 mkdir -p "$HOME/.local/share/applications"
